@@ -169,9 +169,9 @@ const Sidebar = () => {
                     </List>
                 </Collapse>
 
-                {/* Customer */}
+                {/* Customer (disabled) */}
                 <ListItem disablePadding>
-                    <ListItemButton onClick={() => navigate('/customer')}>
+                    <ListItemButton disabled sx={{ cursor: 'default', opacity: 0.6 }}>
                         <ListItemIcon sx={{ color: 'white' }}>
                             <PeopleIcon />
                         </ListItemIcon>

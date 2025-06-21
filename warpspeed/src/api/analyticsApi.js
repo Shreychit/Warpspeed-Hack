@@ -1,34 +1,38 @@
-// Mock analytics data per platform
+// REPLACE ENTIRE FILE
 
-const sampleAnalytics = {
-    swiggy: {
-        mostPopularDish: 'Paneer Butter Masala',
-        totalSales: 12345,
-        bestHour: '7-8 PM',
-        bestDay: 'Saturday',
+// Analytics API helper functions
+// Calls backend endpoint to retrieve analytics data for given delivery platform.
+// If the backend call fails, falls back to a small mock so that the UI still works.
+
+const API_BASE_URL = "https://prompt-me-harder-backend.onrender.com/analytics";
+
+// Minimal mock fallback in case backend is unreachable
+const fallbackAnalytics = {
+    merchant: {
+        merchantId: "0",
+        displayName: "Unknown Merchant",
     },
-    zomato: {
-        mostPopularDish: 'Chicken Biryani',
-        totalSales: 9876,
-        bestHour: '8-9 PM',
-        bestDay: 'Friday',
-    },
-    magicpin: {
-        mostPopularDish: 'Veg Burger',
-        totalSales: 5432,
-        bestHour: '6-7 PM',
-        bestDay: 'Sunday',
-    },
+    analytics: [],
 };
 
-const simulateFetch = (platform) =>
-    new Promise((resolve) => {
-        setTimeout(() => {
-            resolve(sampleAnalytics[platform] || sampleAnalytics.swiggy);
-        }, 500);
-    });
-
-export const fetchSwiggyAnalytics = () => simulateFetch('swiggy');
-export const fetchZomatoAnalytics = () => simulateFetch('zomato');
-export const fetchMagicpinAnalytics = () => simulateFetch('magicpin');
-export const fetchAnalyticsByPlatform = (platform) => simulateFetch(platform); 
+/**
+ * Fetch analytics for a particular platform.
+ * @param {string} platform e.g. "swiggy", "zomato", "magicpin"
+ * @returns {Promise<{merchant: object, analytics: array}>}
+ */
+export const fetchAnalyticsByPlatform = async (platform) => {
+    try {
+        const url = `${API_BASE_URL}/${platform}/102157665201439458654`;
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed with status ${response.status}`);
+        }
+        const json = await response.json();
+        // Expected shape: { status, generatedAt, data: { merchant, analytics: [] } }
+        return json.data ?? fallbackAnalytics;
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Error fetching analytics:", error);
+        return fallbackAnalytics;
+    }
+}; 
