@@ -73,7 +73,7 @@ const Login = () => {
                 }}
             >
                 <Typography variant="h3" sx={{ fontWeight: 700, textAlign: 'center', color: '#ffffff' }} gutterBottom>
-                    Prompt Me Harder
+                    Merchant Mate
                 </Typography>
                 <Typography variant="subtitle1" sx={{ textAlign: 'center', color: '#ffffff' }}>
                     Sign in to continue

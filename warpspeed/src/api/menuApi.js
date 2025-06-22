@@ -72,7 +72,20 @@ export async function fetchMerchantMenu(platform, sub) {
         const storeId = store.storeId ?? store.aggregatorStoreId;
         const storeStatus = store.status ?? 'unknown';
 
-        const livePromo = (store.promos || []).find(p => p.status === 'live');
+        // Determine which promo (if any) is currently active for the store.
+        // 1. Prefer promos explicitly marked as "live".
+        // 2. Fallback to promos marked as "scheduled" *and* whose window currently contains "now".
+        const nowTs = Date.now();
+        const activePromo = (store.promos || []).find((p) => {
+            if (p.status === 'live') return true;
+            if (p.status === 'scheduled') {
+                // If the scheduler hasn\'t toggled the promo to live yet but the window is active, treat it as live.
+                const start = new Date(p.window?.start || 0).getTime();
+                const end = new Date(p.window?.end || 0).getTime();
+                return nowTs >= start && nowTs <= end;
+            }
+            return false;
+        });
 
         return (store.menu || []).map(async item => {
             const imageUrl = item.image ? item.image : await getRandomMealImage();
@@ -88,7 +101,7 @@ export async function fetchMerchantMenu(platform, sub) {
                 ratingAvg: item.rating?.avg ?? null,
                 ratingCount: item.rating?.count ?? null,
                 stockQty: item.stockQty ?? null,
-                promo: livePromo || null,
+                promo: activePromo || null,
                 storeName,
                 storeId,
                 storeStatus,
