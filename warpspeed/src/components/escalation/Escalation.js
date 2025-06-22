@@ -20,6 +20,12 @@ import { capitalizeSentence } from '../../utils/stringUtils';
 const Escalation = () => {
     const { platform } = useParams();
 
+    // Retrieve authenticated user details (inserted by login flow)
+    // so that we can identify the merchant on backend. Fall back to
+    // a hard-coded uid while developing locally, matching Menu component.
+    const user = JSON.parse(localStorage.getItem('user')) || {};
+    const sub = user.sub || 'uid_merchant_c';
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [grievances, setGrievances] = useState([]);
@@ -29,7 +35,7 @@ const Escalation = () => {
             setLoading(true);
             setError(null);
             try {
-                const res = await fetch(`https://prompt-me-harder-backend.onrender.com/grievance/${platform}/uid_merchant_c`);
+                const res = await fetch(`https://prompt-me-harder-backend.onrender.com/grievance/${platform}/${sub}`);
                 if (!res.ok) {
                     throw new Error('Failed to fetch data');
                 }
@@ -43,7 +49,7 @@ const Escalation = () => {
         };
 
         fetchData();
-    }, [platform]);
+    }, [platform, sub]);
 
     // Helper to render status with color
     const renderStatus = (status) => (
@@ -54,15 +60,27 @@ const Escalation = () => {
 
     // Helper to render actions list with tick at end (only if actions exist)
     const renderActions = (actions) => {
-        if (!actions || actions.length === 0) {
+        if (!Array.isArray(actions) || actions.length === 0) {
             return '—';
         }
 
         return (
             <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                {actions.map((act, idx) => (
-                    <span key={idx}>{capitalizeSentence(act)}</span>
-                ))}
+                {actions.map((act, idx) => {
+                    // Gracefully support both string and object-based actions.
+                    let label;
+                    if (typeof act === 'string') {
+                        label = capitalizeSentence(act);
+                    } else if (act && typeof act === 'object') {
+                        // Prefer `note` if present, otherwise stringify the object keys.
+                        label = act.note ? capitalizeSentence(act.note) : JSON.stringify(act);
+                    } else {
+                        label = String(act);
+                    }
+                    return (
+                        <span key={idx}>{label}</span>
+                    );
+                })}
                 <CheckCircleIcon sx={{ color: 'green', fontSize: 18 }} />
             </span>
         );
