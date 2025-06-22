@@ -101,6 +101,7 @@ export async function fetchMerchantMenu(platform, sub) {
                 ratingAvg: item.rating?.avg ?? null,
                 ratingCount: item.rating?.count ?? null,
                 stockQty: item.stockQty ?? null,
+                isActive: item.isActive !== undefined ? item.isActive : true,
                 promo: activePromo || null,
                 storeName,
                 storeId,
